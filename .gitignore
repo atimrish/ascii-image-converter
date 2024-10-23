@@ -1,2 +1,4 @@
 tmp/
 .idea/
+node_modules/
+dist/
