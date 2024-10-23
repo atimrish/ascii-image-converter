@@ -1,46 +1,32 @@
-import {chunkParser, headerParser} from "./helper.js";
+import {chunkParser, dataToLines, headerParser} from "./helper.js";
 import * as zlib from "zlib";
-
-type ColorType = 0 | 2 | 3 | 4 | 6
-type BitDepth = 1 | 2 | 4 | 8 | 16
-
-interface IHeaderData {
-    width: number
-    height: number
-    bitDepth: BitDepth
-    colorType: ColorType
-    compressionMethod: number
-    filterMethod: number
-    interlaceMethod: number
-}
+import {IHeaderData, IPNGLine, IPNGPixel} from "./interfaces/chunks";
 
 interface IPNGHelper {
     signature: Buffer
-    header: IHeaderData | undefined
+    header: Partial<IHeaderData>
     data: Buffer
     getPixel(x: number, y: number): IPNGPixel
 }
 
-interface IPNGPixel {
-    r: number
-    g: number
-    b: number
-    a: number
-}
-
 class PNGHelper implements IPNGHelper {
     signature: Buffer
-    header: IHeaderData | undefined
+    header: Partial<IHeaderData>
     data: Buffer
+    _lines: Array<IPNGLine>
 
     constructor(buffer: Buffer) {
         this.signature = buffer.subarray(0, 8)
         const chunks = chunkParser(buffer)
         const headerChunk = chunks.find(i => i.type === 'IHDR')
-        this.header = headerChunk ? headerParser(headerChunk.data) : undefined
+        this.header = headerChunk ? headerParser(headerChunk.data) : {}
         const dataChunks = chunks.filter(i => i.type === 'IDAT')
         //тут можно реализовать отложенную инициализацию через inflate (async)
         this.data = zlib.inflateSync(Buffer.concat(dataChunks.map(i => i.data)))
+
+        const widthForLines = this.header.width ? this.header.width : 0
+        const pixelLengthInBytes = this.header.bitDepth ? Math.ceil(this.header.bitDepth / 2) : 1
+        this._lines = dataToLines(this.data, widthForLines, pixelLengthInBytes)
     }
 
     getPixel(x: number, y: number): IPNGPixel {
@@ -50,4 +36,4 @@ class PNGHelper implements IPNGHelper {
 
 }
 
-export {IHeaderData, IPNGHelper, IPNGPixel, PNGHelper}
+export {PNGHelper}

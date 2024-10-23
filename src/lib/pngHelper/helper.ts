@@ -1,16 +1,4 @@
-import {IHeaderData, IPNGPixel} from "./PNGHelper.js";
-
-interface IPNGChunk {
-    length: number
-    type: string
-    data: Buffer
-    crc: Buffer
-}
-
-interface IPNGLine {
-    filter: number
-    pixels: Array<IPNGPixel>
-}
+import {IHeaderData, IPNGChunk, IPNGLine} from "./interfaces/chunks";
 
 const bufferToNumber = (buffer: Buffer) => +`0x${buffer.toString('hex')}`
 
@@ -44,19 +32,18 @@ const headerParser = (buffer: Buffer): IHeaderData => {
     }
 }
 
-// const dataToLines = (data: Buffer, width: number, pixelLengthInBytes: number): Array<IPNGLine> => {
-//     const lines = []
-//     let index = 0
-//     while (index < data.length) {
-//
-//         const line = {
-//             filter: data[index],
-//             line: data.subarray(index, index += 1 + width * pixelLengthInBytes)
-//         }
-//         lines.push(line)
-//     }
-//
-//     return lines
-// }
+const dataToLines = (data: Buffer, width: number, pixelLengthInBytes: number): Array<IPNGLine> => {
+    const lines = []
+    let index = 0
+    while (index < data.length) {
 
-export { bufferToNumber, chunkParser, headerParser }
+        const line: IPNGLine = {
+            filter: data[index],
+            line: data.subarray(index, index += 1 + width * pixelLengthInBytes)
+        }
+        lines.push(line)
+    }
+    return lines
+}
+
+export { bufferToNumber, chunkParser, headerParser, dataToLines }
