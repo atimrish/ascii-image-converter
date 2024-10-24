@@ -1,4 +1,4 @@
-import {IHeaderData, IPNGChunk, IPNGLine} from "./interfaces/chunks";
+import {IHeaderData, IPNGChunk, IPNGLine, IPNGPixel} from "./interfaces/chunks";
 
 const bufferToNumber = (buffer: Buffer) => +`0x${buffer.toString('hex')}`
 
@@ -36,14 +36,21 @@ const dataToLines = (data: Buffer, width: number, pixelLengthInBytes: number): A
     const lines = []
     let index = 0
     while (index < data.length) {
-
-        const line: IPNGLine = {
-            filter: data[index],
-            line: data.subarray(index, index += 1 + width * pixelLengthInBytes)
-        }
-        lines.push(line)
+        lines.push({
+            filter: data[index++],
+            line: data.subarray(index, index += width * pixelLengthInBytes)
+        })
     }
     return lines
 }
 
-export { bufferToNumber, chunkParser, headerParser, dataToLines }
+const toRGBA = (buffer: Buffer): IPNGPixel => {
+    return {
+        r: buffer[0],
+        g: buffer[1],
+        b: buffer[2],
+        a: buffer[3]
+    }
+}
+
+export { bufferToNumber, chunkParser, headerParser, dataToLines, toRGBA }
