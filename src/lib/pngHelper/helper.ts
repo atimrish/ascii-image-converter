@@ -1,4 +1,9 @@
-import {IHeaderData, IPNGChunk, IPNGLine, IPNGPixel} from "./interfaces/chunks";
+import {IHeaderData, IPNGChunk, IPNGLine, IPNGPixel} from "./interfaces/chunks.js";
+import {sub} from "./filters/sub.js";
+import {up} from "./filters/up.js";
+import {average} from "./filters/average.js";
+import {paeth} from "./filters/paeth.js";
+import {none} from "./filters/none.js";
 
 const bufferToNumber = (buffer: Buffer) => +`0x${buffer.toString('hex')}`
 
@@ -53,4 +58,33 @@ const toRGBA = (buffer: Buffer): IPNGPixel => {
     }
 }
 
-export { bufferToNumber, chunkParser, headerParser, dataToLines, toRGBA }
+const linesToPixels = (lines: Array<IPNGLine>): Array<Array<IPNGPixel>> => {
+    const formatted: Array<Array<IPNGPixel>> = []
+
+    for (let i = 0; i < lines.length; i++) {
+        let pixels
+        switch (lines[i].filter) {
+            case 1:
+                pixels = sub(lines[i].line)
+                break
+            case 2:
+                pixels = up(formatted[i - 1], lines[i].line)
+                break
+            case 3:
+                pixels = average(formatted[i - 1], lines[i].line)
+                break
+            case 4:
+                pixels = paeth(formatted[i - 1], lines[i].line)
+                break
+            case 0:
+            default:
+                pixels = none(lines[i].line)
+                break
+        }
+        formatted.push(pixels)
+    }
+
+    return formatted
+}
+
+export { bufferToNumber, chunkParser, headerParser, dataToLines, toRGBA, linesToPixels }

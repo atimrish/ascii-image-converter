@@ -1,5 +1,6 @@
 import {IPNGPixel} from "../interfaces/chunks.js";
 import {toRGBA} from "../helper.js";
+import {IterableBuffer} from "../../iterableBuffer/iterableBuffer.js";
 
 const paethPredictor = (a:number, b: number, c: number): number => {
     const p = a + b - c
@@ -10,15 +11,13 @@ const paethPredictor = (a:number, b: number, c: number): number => {
 
 const paeth = (prevPixels: Array<IPNGPixel>, currentLine: Buffer): Array<IPNGPixel> => {
     const pixels:Array<IPNGPixel> = []
+    const lineChunks = [... new IterableBuffer(currentLine, 4)]
 
-    let sliceIndex = 0
-    let pixelIndex = 0
-    ///TODO можно будет реализовать класс для линии буфера с кастомным итератором в зависимости от длины пикселя
-    while (sliceIndex < currentLine.length) {
-        const currentPixel = toRGBA(currentLine.subarray(sliceIndex, sliceIndex += 4))
-        const leftPixel = pixels[pixelIndex - 1] ?? {r: 0, g: 0, b: 0, a: 0}
-        const leftAbovePixel = prevPixels[pixelIndex - 1] ?? {r: 0, g: 0, b: 0, a: 0}
-        const abovePixel = prevPixels[pixelIndex]
+    for (let i = 0; i < lineChunks.length; i++) {
+        const currentPixel = toRGBA(lineChunks[i])
+        const leftPixel = pixels[i - 1] ?? {r: 0, g: 0, b: 0, a: 0}
+        const leftAbovePixel = prevPixels[i - 1] ?? {r: 0, g: 0, b: 0, a: 0}
+        const abovePixel = prevPixels[i]
 
         currentPixel.r = Math.abs(currentPixel.r + paethPredictor(leftPixel.r, abovePixel.r, leftAbovePixel.r)) % 256
         currentPixel.g = Math.abs(currentPixel.g + paethPredictor(leftPixel.g, abovePixel.g, leftAbovePixel.g)) % 256
@@ -26,7 +25,6 @@ const paeth = (prevPixels: Array<IPNGPixel>, currentLine: Buffer): Array<IPNGPix
         currentPixel.a = Math.abs(currentPixel.a + paethPredictor(leftPixel.a, abovePixel.a, leftAbovePixel.a)) % 256
 
         pixels.push(currentPixel)
-        pixelIndex++
     }
 
     return pixels

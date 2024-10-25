@@ -19,6 +19,5 @@ fs.readFile(filePath, (err, data) => {
         throw err
     }
     const png = new PNGHelper(data)
-    png._lines.forEach(i => console.log(i.filter))
 })
 

@@ -1,12 +1,15 @@
 import {toRGBA} from "../helper.js";
+import {IterableBuffer} from "../../iterableBuffer/iterableBuffer.js";
 
 const sub = (line: Buffer) => {
-    let index = 4
-    let prev = toRGBA(line.subarray(0, index))
+
+    const iterable = new IterableBuffer(line, 4)
+    const [first, ...lineChunks] = [...iterable]
+    let prev = toRGBA(first)
     const pixels = [prev]
 
-    while (index < line.length) {
-        const current = toRGBA(line.subarray(index, index += 4))
+    for (const currentChunk of lineChunks) {
+        const current = toRGBA(currentChunk)
         current.r = (current.r + prev.r) % 256
         current.g = (current.g + prev.g) % 256
         current.b = (current.b + prev.b) % 256
