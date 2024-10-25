@@ -35,8 +35,7 @@ class PNGHelper implements IPNGHelper {
 
 
     getPixel(x: number, y: number): IPNGPixel {
-        ///TODO: реализовать метод получения пикселя
-        return {r: 0, g: 0, b: 0, a: 0}
+        return this.pixels[y][x]
     }
 
 }
