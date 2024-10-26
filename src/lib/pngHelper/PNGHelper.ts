@@ -1,6 +1,7 @@
 import {chunkParser, dataToLines, headerParser, linesToPixels} from "./helper.js";
 import * as zlib from "zlib";
 import {IHeaderData, IPNGLine, IPNGPixel} from "./interfaces/chunks.js";
+import {pixelToASCII} from "../pixelToASCII/pixelToASCII.js";
 
 interface IPNGHelper {
     signature: Buffer
@@ -38,6 +39,16 @@ class PNGHelper implements IPNGHelper {
         return this.pixels[y][x]
     }
 
+    toASCII(): string {
+        let result = ''
+        for (let y = 0; y < this.pixels.length; y++) {
+            for (let x = 0; x < this.pixels[y].length; x++) {
+                result += pixelToASCII(this.getPixel(x, y))
+            }
+            result += '\n'
+        }
+        return result
+    }
 }
 
 export {PNGHelper}

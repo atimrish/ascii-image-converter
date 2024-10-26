@@ -19,5 +19,6 @@ fs.readFile(filePath, (err, data) => {
         throw err
     }
     const png = new PNGHelper(data)
+    console.log(png.toASCII())
 })
 
